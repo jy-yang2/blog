@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+        <style>
+            select {
+                text-align-last:center;
+            }
+            select.option {
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <v-app id="inspire">
+                <v-app id="inspire">
+                    <v-navigation-drawer
+                        v-model="drawer"
+                        app
+                    >
+                        <v-list dense>
+                            <v-list-item link>
+                                <v-list-item-action>
+                                <v-icon>mdi-chart-line</v-icon>
+                                </v-list-item-action>
+                                <v-list-item-content>
+                                <v-list-item-title>Menu</v-list-item-title>
+                                </v-list-item-content>
+                            </v-list-item>
+                        </v-list>
+                    </v-navigation-drawer>
+
+                    <v-app-bar
+                        app
+                        dark
+                    >
+                        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+                        <v-toolbar-title>Toolbar</v-toolbar-title>
+
+                        <template v-slot:extension>
+                            <v-tabs
+                            v-model="tab"
+                            align-with-title
+                            >
+                                <v-tabs-slider color="white"></v-tabs-slider>
+                                <v-tab href="#tab-1">Table</v-tab>
+                                <v-tab href="#tab-2">Chart</v-tab>
+                            </v-tabs>
+                        </template>
+                    </v-app-bar>
+                    <v-tabs-items v-model="tab">
+                        <v-tab-item
+                            value="tab-2"
+                        >
+                            <v-main>
+                                <v-container
+                                    class="fill-height"
+                                    fluid
+                                >
+                                    <v-row
+                                        align="center"
+                                        justify="center"
+                                    >
+                                        <v-col
+                                            class="text-start"
+                                        >
+
+                                            <test-chart
+                                                style="width:50%;"
+                                                :vsls="vs"
+                                            />
+                                        </v-col>
+                                    </v-row>
+                                </v-container>
+                            </v-main>
+                        </v-tab-item>
+                        <v-tab-item
+                            value="tab-1"
+                        >
+                            <v-main>
+                                <v-container
+                                class="fill-height"
+                                fluid
+                                >
+                                    <v-row
+                                        align="center"
+                                        justify="center"
+                                    >
+                                        <v-col class="text-start">
+                                            <v-card>
+                                               <v-data-table
+                                                    style="overflow-x: scroll"
+                                                    dense
+                                                    :headers="headers"
+                                                    :items="desserts"
+                                                    item-key="name"
+                                                    :single-expand="singleExpand"
+                                                    :expanded.sync="expanded"
+                                                    show-expand
+                                                >
+                                                    <template v-slot:expanded-item="{ headers, item }">
+                                                        <td :colspan="headers.length">
+                                                            <div class="text-start my-2" style="overflow-x: scroll">
+                                                                <test-chart
+                                                                    style="width:50%;"
+                                                                    :vsls="vs"
+                                                                />
+                                                            </div>
+                                                        </td>
+                                                    </template>
+                                                </v-data-table>
+                                            </v-card>
+                                        </v-col>
+                                    </v-row>
+                                </v-container>
+                            </v-main>
+                        </v-tab-item>
+                    </v-tabs-items>
+                </v-app>
+            </v-app>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vuetify@2.3/dist/vuetify.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+        <script src="https://unpkg.com/vue-chartjs/dist/vue-chartjs.min.js"></script>
+        <script>
+            var ChartComponent = {
+                extends: VueChartJs.Scatter,
+                props: ['vsls'],
+                delimiters: ['[[', ']]'],
+                created() {
+                },
+                computed: {
+                    options: function () {
+                        return {
+                                legend: {
+                                    position: 'right',
+                                    labels: {
+                                        usePointStyle: true,
+                                    }
+                                },
+                            }
+                    },
+                    chartData: function () {
+                        console.log(`[Computed] x:${this.vsls.x}`)
+                        return {
+                            datasets: [
+                                {
+                                    label: 'point',
+                                    borderColor: '#d83d8e',
+                                    backgroundColor: '#f87979',
+                                    pointStyle: 'circle',
+                                    pointRadius: 4,
+                                    data: [{
+                                        x: this.vsls.x,
+                                        y: this.vsls.y
+                                    }],
+                                    order: 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                mounted () {
+                    this.renderChart(this.chartData, this.options)
+                },
+                watch: {
+                    vsls: function(newVsls) {
+                        console.log(`[Watch] ${this.vsls.x}....${this.vsls === newVsls}`)
+                    },
+                    chartData: function(newChart){
+                        this.renderChart(this.chartData, this.options)
+                    }
+                },
+            }
+
+            var vm = new Vue({
+                el: '#app',
+                components: {
+                    'test-chart': ChartComponent
+                },
+                vuetify: new Vuetify(),
+                delimiters: ['[[', ']]'],
+                data: () => ({
+                    tab: null,
+                    drawer: false,
+                  headers: [
+                      {
+                        text: 'Dessert (100g serving)',
+                        align: 'start',
+                        sortable: false,
+                        value: 'name',
+                      },
+                      { text: 'Calories', value: 'calories', width:'200px'},
+                      { text: 'Fat (g)', value: 'fat', width:'200px'},
+                      { text: 'Carbs (g)', value: 'carbs', width:'200px'},
+                      { text: 'Protein (g)', value: 'protein', width:'200px' },
+                      { text: 'Iron (%)', value: 'iron', width:'200px' },
+                      {
+                        text: 'Dessert (100g serving)',
+                        align: 'start',
+                        sortable: false,
+                        value: 'name2',
+                      },
+                      { text: 'Calories', value: 'calories2', width:'200px'},
+                      { text: 'Fat (g)', value: 'fat2', width:'200px'},
+                      { text: 'Carbs (g)', value: 'carbs2', width:'200px'},
+                      { text: 'Protein (g)', value: 'protein2', width:'200px' },
+                      { text: 'Iron (%)', value: 'iron2', width:'200px' },
+                    ],
+                    desserts: [
+                      {
+                        name: 'Frozen Yogurt',
+                        calories: 159,
+                        fat: 6.0,
+                        carbs: 24,
+                        protein: 4.0,
+                        iron: '1%',
+                        name2: 'Frozen Yogurt',
+                        calories2: 159,
+                        fat2: 6.0,
+                        carbs2: 24,
+                        protein2: 4.0,
+                        iron2: '1%',
+                      },
+                      {
+                        name: 'Ice cream sandwich',
+                        calories: 237,
+                        fat: 9.0,
+                        carbs: 37,
+                        protein: 4.3,
+                        iron: '1%',
+                      },
+                      {
+                        name: 'Eclair',
+                        calories: 262,
+                        fat: 16.0,
+                        carbs: 23,
+                        protein: 6.0,
+                        iron: '7%',
+                      },
+                      {
+                        name: 'Cupcake',
+                        calories: 305,
+                        fat: 3.7,
+                        carbs: 67,
+                        protein: 4.3,
+                        iron: '8%',
+                      },
+                      {
+                        name: 'Gingerbread',
+                        calories: 356,
+                        fat: 16.0,
+                        carbs: 49,
+                        protein: 3.9,
+                        iron: '16%',
+                      },
+                      {
+                        name: 'Jelly bean',
+                        calories: 375,
+                        fat: 0.0,
+                        carbs: 94,
+                        protein: 0.0,
+                        iron: '0%',
+                      },
+                      {
+                        name: 'Lollipop',
+                        calories: 392,
+                        fat: 0.2,
+                        carbs: 98,
+                        protein: 0,
+                        iron: '2%',
+                      },
+                      {
+                        name: 'Honeycomb',
+                        calories: 408,
+                        fat: 3.2,
+                        carbs: 87,
+                        protein: 6.5,
+                        iron: '45%',
+                      },
+                      {
+                        name: 'Donut',
+                        calories: 452,
+                        fat: 25.0,
+                        carbs: 51,
+                        protein: 4.9,
+                        iron: '22%',
+                      },
+                      {
+                        name: 'KitKat',
+                        calories: 518,
+                        fat: 26.0,
+                        carbs: 65,
+                        protein: 7,
+                        iron: '6%',
+                      },
+                    ],
+                    vs: {'x': 20, 'y': 30}
+                }),
+            })
+        </script>
+    </body>
+</html>
